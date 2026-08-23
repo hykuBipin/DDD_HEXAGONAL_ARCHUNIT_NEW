@@ -9,11 +9,22 @@ A production-ready Spring Boot 3 reference project demonstrating **Domain-Driven
 
 ---
 
+## 🖼️ High-Definition Architectural Diagrams
+
+The project includes **4 embedded high-definition graphic diagrams**:
+
+1. **DDD Core Architecture (`diagram_ddd.png`)**: Illustrates the pure Java domain core (Aggregates, Value Objects, Domain Events) isolated from outer framework layers.
+2. **Real-World Car Engine Analogy (`diagram_car_analogy.png`)**: Explains Ports & Adapters using the Gas Pedal → Throttle Socket → Engine → Fuel Tank & Wheels analogy.
+3. **Satellite Hexagonal Codebase Mapping (`diagram_satellite_hex.png`)**: Visualizes exact Java classes mapped across Driving Adapters, Inbound Ports, Domain Core, and Driven Adapters.
+4. **Multi-Database Adapter Swapping Demo (`diagram_adapter_swapping.png`)**: Demonstrates how `SatelliteRepository` port seamlessly switches between Relational DB (`SatelliteJpaAdapter`) and NoSQL Document DB (`SatelliteMongoAdapter`) with **zero changes to Domain Core**.
+
+---
+
 ## 🏛️ Traditional Java vs. DDD + Hexagonal Architecture
 
 ### Traditional 3-Tier Layered Architecture (The Problem)
 In traditional Spring Boot applications, architecture is structured around database entities:
-```
+```text
 Controller ──► Service (@Service) ──► Repository (@Repository) ──► Database (@Entity)
 ```
 - **Database-Centric**: JPA `@Entity` classes leak into controllers and services.
@@ -38,13 +49,66 @@ Hexagonal Architecture places the **Domain Core** at the center, isolated from a
 │                        domain.port.out                                 │
 │                              │                                         │
 │                              ▼                                         │
-│                        infrastructure.adapter.out (JPA, Messaging)     │
+│                        infrastructure.adapter.out (JPA, MongoDB)       │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-1. **Inside the Hexagon (`com.satellite.domain`)**: Pure Java. Contains Aggregate Roots, Value Objects, Domain Events, and Port Interfaces. Zero framework dependencies.
-2. **Ports (`domain.port.in` & `domain.port.out`)**: Contracts defining how the outside world talks to the domain (Inbound) and how the domain communicates with external systems (Outbound).
-3. **Outside the Hexagon (`com.satellite.infrastructure`)**: Technical details (Spring MVC, Spring Data JPA, Kafka adapters, Bean configurations).
+---
+
+## 🔌 Hexagonal Superpower: Multi-Database Adapter Swapping Demo
+
+One of the greatest benefits of Hexagonal Architecture is the ability to **swap or support multiple databases without touching a single line of domain or application service code**.
+
+### Outbound Port (Domain Contract)
+Located in `com.satellite.domain.port.out.SatelliteRepository`:
+```java
+public interface SatelliteRepository {
+    Satellite save(Satellite satellite);
+    Optional<Satellite> findById(SatelliteId id);
+    List<Satellite> findAll();
+    boolean existsById(SatelliteId id);
+}
+```
+
+### Driven Adapter 1: Relational SQL DB (JPA / H2 / PostgreSQL)
+Located in `com.satellite.infrastructure.adapter.out.persistence.SatelliteJpaAdapter`:
+```java
+@Component
+@Profile("jpa") // Active for SQL databases
+public class SatelliteJpaAdapter implements SatelliteRepository {
+
+    private final SatelliteJpaRepository jpaRepository;
+    private final SatellitePersistenceMapper mapper;
+
+    @Override
+    public Satellite save(Satellite satellite) {
+        SatelliteJpaEntity entity = mapper.toJpaEntity(satellite);
+        SatelliteJpaEntity saved  = jpaRepository.save(entity);
+        return mapper.toDomainEntity(saved);
+    }
+}
+```
+
+### Driven Adapter 2: NoSQL Document DB (MongoDB)
+Located in `com.satellite.infrastructure.adapter.out.persistence.SatelliteMongoAdapter`:
+```java
+@Component
+@Profile("mongo") // Active for NoSQL Document DBs
+public class SatelliteMongoAdapter implements SatelliteRepository {
+
+    private final MongoTemplate mongoTemplate;
+    private final SatelliteMongoMapper mapper;
+
+    @Override
+    public Satellite save(Satellite satellite) {
+        SatelliteDocument doc = mapper.toDocument(satellite);
+        SatelliteDocument saved = mongoTemplate.save(doc);
+        return mapper.toDomainEntity(saved);
+    }
+}
+```
+
+> 💡 **Key Takeaway**: Switching from PostgreSQL to MongoDB or Redis is purely a configuration swap (`@Profile` or Spring Bean config). The Domain aggregate `Satellite.java` and Use Cases remain **100% untouched and unaware** of where data is stored!
 
 ---
 
@@ -86,7 +150,7 @@ com.satellite/
 │   │   │   ├── dto/                             (HTTP Requests & Responses)
 │   │   │   └── mapper/                          (Domain <-> DTO Mapper)
 │   │   └── out/
-│   │       ├── persistence/                     (Driven Adapter — JPA Persistence)
+│   │       ├── persistence/                     (Driven Adapters — JPA / MongoDB)
 │   │       │   ├── SatelliteJpaAdapter.java
 │   │       │   ├── entity/                      (SatelliteJpaEntity & SatelliteJpaRepository)
 │   │       │   └── mapper/                      (Domain <-> JPA Mapper)
