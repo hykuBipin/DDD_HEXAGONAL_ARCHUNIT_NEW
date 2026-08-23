@@ -101,7 +101,6 @@ p4.font.size = Pt(14)
 p4.font.color.rgb = MUTED_TEXT
 p4.font.name = "Arial"
 
-# Cards at bottom of slide 1
 card_w = Inches(3.6)
 card_h = Inches(1.4)
 top_pos = Inches(5.3)
@@ -164,7 +163,7 @@ p.font.color.rgb = GOLD_ACCENT
 bullets = [
     ("Anemic Domain Models: ", "Entities are empty data shells (getters/setters). Business logic leaks into 2,000-line Spring @Services."),
     ("Framework Lock-in: ", "@Entity, @Table, and Jackson annotations blur domain boundaries with database and HTTP concerns."),
-    ("Architectural Drift: ", "Over time, Controllers bypass Services to call DAOs, creating cyclic dependencies and untestable spaghetti code."),
+    ("Architectural Drift: ", "Over time, Controllers bypass Services to call DAOs, creating cyclic dependencies and untestable code."),
     ("Manual Reviews Don't Scale: ", "PR code reviews miss subtle architecture violations under tight deadline pressure.")
 ]
 for title, desc in bullets:
@@ -185,7 +184,7 @@ p = tf2.paragraphs[0]
 p.text = "Impact on Delivery & Quality"
 p.font.bold = True
 p.font.size = Pt(18)
-p.font.color.rgb = RGBColor(239, 68, 68) # Red
+p.font.color.rgb = RGBColor(239, 68, 68)
 
 impacts = [
     ("Slow Unit Testing: ", "Cannot test core rules without booting full Spring context & DB."),
@@ -204,124 +203,38 @@ for title, desc in impacts:
     run.font.color.rgb = MUTED_TEXT
 
 # ---------------------------------------------------------
-# SLIDE 3: Pillar 1 - DDD Core
+# SLIDE 3: Pillar 1 - DDD Architecture Diagram Slide
 # ---------------------------------------------------------
 slide3 = prs.slides.add_slide(slide_layout)
 set_slide_background(slide3, DARK_BG)
-add_header(slide3, "Pillar 1: Domain-Driven Design (DDD) Core", "PURE BUSINESS LOGIC")
+add_header(slide3, "Pillar 1: Domain-Driven Design (DDD) Architecture", "PURE BUSINESS LOGIC CORE")
 
-c_left = add_card(slide3, Inches(0.8), Inches(1.5), Inches(6.0), Inches(5.2))
-tf = c_left.text_frame
-tf.word_wrap = True
-p = tf.paragraphs[0]
-p.text = "Standalone Domain Architecture"
-p.font.bold = True
-p.font.size = Pt(18)
-p.font.color.rgb = BLUE_ACCENT
-
-ddd_points = [
-    ("Domain Core (Heart): ", "Contains Aggregate Root (Satellite), Value Objects (Orbit, Telemetry), and Domain Events."),
-    ("Zero Annotations: ", "No @Entity, @Table, @Component, or @JsonProperty. 100% pure Java code."),
-    ("Rich Domain Invariants: ", "State transitions (REGISTERED -> ACTIVE -> ANOMALY) are controlled internally by the aggregate."),
-    ("Self-Validating Value Objects: ", "Orbit validates altitude constraints (LEO < 2000 km, GEO ~35,786 km) at instant of creation.")
-]
-for title, desc in ddd_points:
-    p = tf.add_paragraph()
-    p.text = "✔ " + title
-    p.font.bold = True
-    p.font.size = Pt(13)
-    p.font.color.rgb = LIGHT_TEXT
-    run = p.add_run()
-    run.text = desc
-    run.font.bold = False
-    run.font.color.rgb = MUTED_TEXT
-
-c_right = add_card(slide3, Inches(7.1), Inches(1.5), Inches(5.4), Inches(5.2))
-tf = c_right.text_frame
-tf.word_wrap = True
-p = tf.paragraphs[0]
-p.text = "Code Snippet: Pure Java Aggregate"
-p.font.bold = True
-p.font.size = Pt(16)
-p.font.color.rgb = GREEN_ACCENT
-
-code_lines = [
-    "// Pure Java Aggregate Root",
-    "public class Satellite {",
-    "  private final SatelliteId id;",
-    "  private Orbit orbit;",
-    "  private SatelliteStatus status;",
-    "",
-    "  public void launch() {",
-    "    ensureCanTransitionTo(ACTIVE);",
-    "    this.status = ACTIVE;",
-    "    this.domainEvents.add(",
-    "      new SatelliteLaunchedEvent(...));",
-    "  }",
-    "}"
-]
-for line in code_lines:
-    p = tf.add_paragraph()
-    p.text = line
-    p.font.size = Pt(12)
-    p.font.name = "Courier New"
-    p.font.color.rgb = LIGHT_TEXT
+# Embed diagram_ddd.png
+img_path = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/diagram_ddd.png"
+if os.path.exists(img_path):
+    slide3.shapes.add_picture(img_path, Inches(0.8), Inches(1.5), Inches(11.7), Inches(5.4))
 
 # ---------------------------------------------------------
-# SLIDE 4: Pillar 2 - Hexagonal Architecture (Car Analogy)
+# SLIDE 4: Pillar 2A - Hexagonal Architecture Car Analogy Diagram Slide
 # ---------------------------------------------------------
 slide4 = prs.slides.add_slide(slide_layout)
 set_slide_background(slide4, DARK_BG)
-add_header(slide4, "Pillar 2A: Hexagonal Architecture (Real-World Car Analogy)", "PORTS & ADAPTERS CONCEPT")
+add_header(slide4, "Pillar 2A: Hexagonal Architecture Concept (Real-World Car Analogy)", "PORTS & ADAPTERS CONCEPTUAL MODEL")
 
-cards_data = [
-    ("DRIVING ADAPTERS (Inputs)", "Foot Gas Pedal\nCruise Control Button\nMobile App Remote", Inches(0.8), BLUE_ACCENT),
-    ("INPUT PORTS", "Throttle Socket Interface\n(Standard Contract)", Inches(3.9), GOLD_ACCENT),
-    ("CORE ENGINE (Hexagon)", "Engine Cylinder &\nCombustion Rules\n(Independent Core)", Inches(6.8), GREEN_ACCENT),
-    ("OUTPUT PORTS & ADAPTERS", "Fuel Port -> Petrol Tank / Battery\nDrivetrain Port -> Wheels", Inches(9.8), BLUE_ACCENT)
-]
-
-for title, desc, left, color in cards_data:
-    c = add_card(slide4, left, Inches(1.8), Inches(2.7), Inches(4.8))
-    tf = c.text_frame
-    tf.word_wrap = True
-    p = tf.paragraphs[0]
-    p.text = title
-    p.font.bold = True
-    p.font.size = Pt(14)
-    p.font.color.rgb = color
-    p2 = tf.add_paragraph()
-    p2.text = "\n" + desc
-    p2.font.size = Pt(13)
-    p2.font.color.rgb = LIGHT_TEXT
+img_path2 = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/diagram_car_analogy.png"
+if os.path.exists(img_path2):
+    slide4.shapes.add_picture(img_path2, Inches(0.8), Inches(1.5), Inches(11.7), Inches(5.4))
 
 # ---------------------------------------------------------
-# SLIDE 5: Pillar 2 - Hexagonal in Codebase
+# SLIDE 5: Pillar 2B - Hexagonal Architecture Satellite Codebase Diagram Slide
 # ---------------------------------------------------------
 slide5 = prs.slides.add_slide(slide_layout)
 set_slide_background(slide5, DARK_BG)
-add_header(slide5, "Pillar 2B: Hexagonal Architecture in Satellite Codebase", "CODEBASE MAPPING")
+add_header(slide5, "Pillar 2B: Hexagonal Architecture in Satellite Codebase", "APPLICATION INFRASTRUCTURE MAPPING")
 
-c_code_mapping = [
-    ("1. Driving Adapters (REST)", "SatelliteController parses HTTP JSON -> calls Inbound Port interface.", Inches(0.8)),
-    ("2. Inbound Ports (Domain)", "LaunchSatelliteUseCase & UpdateTelemetryUseCase interfaces defined in domain.", Inches(3.9)),
-    ("3. Outbound Ports (Domain)", "SatelliteRepository interface defined in domain using domain types.", Inches(6.8)),
-    ("4. Driven Adapters (JPA)", "SatelliteJpaAdapter implements SatelliteRepository & converts to SatelliteJpaEntity.", Inches(9.8))
-]
-
-for title, desc, left in c_code_mapping:
-    c = add_card(slide5, left, Inches(1.8), Inches(2.7), Inches(4.8))
-    tf = c.text_frame
-    tf.word_wrap = True
-    p = tf.paragraphs[0]
-    p.text = title
-    p.font.bold = True
-    p.font.size = Pt(14)
-    p.font.color.rgb = GREEN_ACCENT
-    p2 = tf.add_paragraph()
-    p2.text = "\n" + desc
-    p2.font.size = Pt(13)
-    p2.font.color.rgb = LIGHT_TEXT
+img_path3 = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/diagram_satellite_hex.png"
+if os.path.exists(img_path3):
+    slide5.shapes.add_picture(img_path3, Inches(0.8), Inches(1.5), Inches(11.7), Inches(5.4))
 
 # ---------------------------------------------------------
 # SLIDE 6: Package Layout
@@ -512,4 +425,4 @@ for t in takeaways:
 
 output_path = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/Satellite_Architecture_DDD_Hexagonal_ArchUnit.pptx"
 prs.save(output_path)
-print(f"Successfully generated PowerPoint presentation at: {output_path}")
+print(f"Successfully generated updated PowerPoint presentation with embedded diagram images at: {output_path}")
