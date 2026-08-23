@@ -17,20 +17,20 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
  * These tests are NOT optional documentation — they are MANDATORY build gates.
  * If any rule is violated, the build FAILS. This prevents architectural drift.
  *
- * Architecture being enforced:
+ * Architecture being enforced (JonathanM2ndoza Standard):
  *
- *   ┌────────────────────────────────────────────────────────────┐
- *   │  adapter.in  (REST, Messaging)                             │
- *   │      │                                                     │
- *   │      ▼                                                     │
- *   │  domain.port.in  ◄──── application.service                │
- *   │                              │                             │
- *   │                              ▼                             │
- *   │                        domain.port.out                     │
- *   │                              │                             │
- *   │                              ▼                             │
- *   │                        adapter.out                         │
- *   └────────────────────────────────────────────────────────────┘
+ *   ┌────────────────────────────────────────────────────────────────────────┐
+ *   │  infrastructure.adapter.in  (REST, Messaging)                          │
+ *   │      │                                                                 │
+ *   │      ▼                                                                 │
+ *   │  domain.port.in  ◄──── application.service                            │
+ *   │                              │                                         │
+ *   │                              ▼                                         │
+ *   │                        domain.port.out                                 │
+ *   │                              │                                         │
+ *   │                              ▼                                         │
+ *   │                        infrastructure.adapter.out                      │
+ *   └────────────────────────────────────────────────────────────────────────┘
  *
  *   domain  ──►  NO dependency on anything else (inner hexagon)
  */
@@ -44,7 +44,7 @@ public class HexagonalArchitectureTest {
 
     // ── Rule 1: Domain layer purity ───────────────────────────────────────────
     /**
-     * The domain package must NEVER depend on adapter, application, or config.
+     * The domain package must NEVER depend on infrastructure or application.
      * It may not use Spring, JPA, Jackson, or any framework annotations.
      */
     @ArchTest
@@ -53,9 +53,8 @@ public class HexagonalArchitectureTest {
                     .that().resideInAPackage(BASE + ".domain..")
                     .should().dependOnClassesThat()
                     .resideInAnyPackage(
-                            BASE + ".adapter..",
-                            BASE + ".application..",
-                            BASE + ".config.."
+                            BASE + ".infrastructure..",
+                            BASE + ".application.."
                     )
                     .because("The domain is the inner hexagon — it must depend on nothing outside itself.");
 
@@ -88,29 +87,29 @@ public class HexagonalArchitectureTest {
                     .resideInAPackage(BASE + ".domain.port.in..")
                     .because("Application services must implement inbound port interfaces.");
 
-    // ── Rule 5: Application layer must not depend on adapters ─────────────────
+    // ── Rule 5: Application layer must not depend on infrastructure ────────────
     @ArchTest
     static final ArchRule applicationMustNotDependOnAdapters =
             noClasses()
                     .that().resideInAPackage(BASE + ".application..")
                     .should().dependOnClassesThat()
-                    .resideInAPackage(BASE + ".adapter..")
+                    .resideInAPackage(BASE + ".infrastructure..")
                     .because("Application services orchestrate domain logic only via ports.");
 
-    // ── Rule 6: Adapters must not depend on each other ────────────────────────
+    // ── Rule 6: Inbound adapters must not depend on outbound adapters ──────────
     @ArchTest
     static final ArchRule inboundAdaptersMustNotDependOnOutboundAdapters =
             noClasses()
-                    .that().resideInAPackage(BASE + ".adapter.in..")
+                    .that().resideInAPackage(BASE + ".infrastructure.adapter.in..")
                     .should().dependOnClassesThat()
-                    .resideInAPackage(BASE + ".adapter.out..")
+                    .resideInAPackage(BASE + ".infrastructure.adapter.out..")
                     .because("Inbound adapters (REST/Messaging) must not know about outbound adapters (DB/MQ).");
 
     // ── Rule 7: REST controllers must only depend on domain ports (not services) ──
     @ArchTest
     static final ArchRule controllersMustDependOnPortsNotServices =
             noClasses()
-                    .that().resideInAPackage(BASE + ".adapter.in.rest..")
+                    .that().resideInAPackage(BASE + ".infrastructure.adapter.in.rest..")
                     .and().haveSimpleNameEndingWith("Controller")
                     .should().dependOnClassesThat()
                     .resideInAPackage(BASE + ".application..")
@@ -127,7 +126,7 @@ public class HexagonalArchitectureTest {
     @ArchTest
     static final ArchRule adaptersShouldBeNamedCorrectly =
             classes()
-                    .that().resideInAPackage(BASE + ".adapter.out.persistence")
+                    .that().resideInAPackage(BASE + ".infrastructure.adapter.out.persistence")
                     .and().areNotInterfaces()
                     .and().doNotHaveSimpleName("SatellitePersistenceMapper")
                     .should().haveSimpleNameEndingWith("Adapter")
@@ -136,7 +135,7 @@ public class HexagonalArchitectureTest {
     @ArchTest
     static final ArchRule controllersShouldBeNamedCorrectly =
             classes()
-                    .that().resideInAPackage(BASE + ".adapter.in.rest")
+                    .that().resideInAPackage(BASE + ".infrastructure.adapter.in.rest")
                     .and().areNotInterfaces()
                     .and().areNotRecords()
                     .and().areTopLevelClasses()      // excludes inner records like ErrorResponse
@@ -162,7 +161,7 @@ public class HexagonalArchitectureTest {
     @ArchTest
     static final ArchRule noCyclicDependencies =
             slices()
-                    .matching(BASE + ".(*)..") // top-level packages: domain, application, adapter, config
+                    .matching(BASE + ".(*)..") // top-level packages: domain, application, infrastructure
                     .should().beFreeOfCycles()
                     .because("Cyclic dependencies between layers indicate broken architecture.");
 
@@ -171,16 +170,14 @@ public class HexagonalArchitectureTest {
     static final ArchRule layeredArchitectureIsRespected =
             layeredArchitecture()
                     .consideringOnlyDependenciesInAnyPackage(BASE + "..")
-                    .layer("Domain")      .definedBy(BASE + ".domain..")
-                    .layer("Application") .definedBy(BASE + ".application..")
-                    .layer("Adapter")     .definedBy(BASE + ".adapter..")
-                    .layer("Config")      .definedBy(BASE + ".config..")
+                    .layer("Domain")         .definedBy(BASE + ".domain..")
+                    .layer("Application")    .definedBy(BASE + ".application..")
+                    .layer("Infrastructure") .definedBy(BASE + ".infrastructure..")
 
-                    .whereLayer("Domain")      .mayNotAccessAnyLayer()
-                    .whereLayer("Application") .mayOnlyAccessLayers("Domain")
-                    .whereLayer("Adapter")     .mayOnlyAccessLayers("Domain", "Application")
-                    .whereLayer("Config")      .mayOnlyAccessLayers("Domain", "Application", "Adapter")
+                    .whereLayer("Domain")         .mayNotAccessAnyLayer()
+                    .whereLayer("Application")    .mayOnlyAccessLayers("Domain")
+                    .whereLayer("Infrastructure") .mayOnlyAccessLayers("Domain", "Application")
 
                     .because("Layered architecture must be respected: " +
-                             "Config → Adapter → Application → Domain (inner hexagon).");
+                             "Infrastructure → Application → Domain (inner hexagon).");
 }
