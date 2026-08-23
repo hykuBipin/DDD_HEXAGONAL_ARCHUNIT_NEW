@@ -3,7 +3,6 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
-from pptx.enum.shapes import MSO_SHAPE
 
 prs = Presentation()
 prs.slide_width = Inches(13.333)
@@ -112,40 +111,40 @@ for item in items:
     p.font.color.rgb = LIGHT_TEXT
 
 # -------------------------------------------------------------
-# SLIDE 3: DDD Core Diagram Slide
+# SLIDE 3: Hexagonal Primary & Secondary Adapters Diagram
 # -------------------------------------------------------------
 slide3 = prs.slides.add_slide(prs.slide_layouts[6])
 set_slide_background(slide3, DARK_BG)
-add_header(slide3, "Domain-Driven Design (DDD) Core Architecture", "Core Concepts")
+add_header(slide3, "Hexagonal Architecture: Primary (Driving) & Secondary (Driven) Adapters", "WATA / Herberto Graça Specification")
 
-img_path1 = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/diagram_ddd.png"
+img_path1 = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/diagram_hexagonal_primary_secondary.png"
 if os.path.exists(img_path1):
     slide3.shapes.add_picture(img_path1, Inches(0.8), Inches(1.4), width=Inches(11.7))
 
 # -------------------------------------------------------------
-# SLIDE 4: Hexagonal Car Analogy Diagram Slide
+# SLIDE 4: Concentric Layered Onion Diagram Slide
 # -------------------------------------------------------------
 slide4 = prs.slides.add_slide(prs.slide_layouts[6])
 set_slide_background(slide4, DARK_BG)
-add_header(slide4, "Hexagonal Architecture Concept: Real-World Car Engine Analogy", "Ports & Adapters Concept")
+add_header(slide4, "Onion & Hexagonal Concentric Ring Dependency Rules", "Architectural Isolation")
 
-img_path2 = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/diagram_car_analogy.png"
+img_path2 = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/diagram_onion_concentric.png"
 if os.path.exists(img_path2):
     slide4.shapes.add_picture(img_path2, Inches(0.8), Inches(1.4), width=Inches(11.7))
 
 # -------------------------------------------------------------
-# SLIDE 5: Satellite Hexagonal Codebase Diagram Slide
+# SLIDE 5: DDD Ubiquitous Language & Subdomains Slide
 # -------------------------------------------------------------
 slide5 = prs.slides.add_slide(prs.slide_layouts[6])
 set_slide_background(slide5, DARK_BG)
-add_header(slide5, "Hexagonal Architecture in Satellite Codebase", "Codebase Layout & Class Mapping")
+add_header(slide5, "Domain-Driven Design (DDD): Ubiquitous Language & Subdomains", "Domain Distillation")
 
-img_path3 = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/diagram_satellite_hex.png"
+img_path3 = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/diagram_ddd_ubiquitous_language.png"
 if os.path.exists(img_path3):
     slide5.shapes.add_picture(img_path3, Inches(0.8), Inches(1.4), width=Inches(11.7))
 
 # -------------------------------------------------------------
-# SLIDE 6: Dual Database Adapter Swapping Demo Slide (NEW!)
+# SLIDE 6: Multi-Database Adapter Swapping Demo Slide
 # -------------------------------------------------------------
 slide6 = prs.slides.add_slide(prs.slide_layouts[6])
 set_slide_background(slide6, DARK_BG)
@@ -205,4 +204,4 @@ for c in cmds:
 
 prs.save("/Users/bipin/.gemini/antigravity/scratch/satellite-system/Satellite_Architecture_DDD_Hexagonal_ArchUnit.pptx")
 
-print("Successfully generated updated PowerPoint presentation with embedded diagram images!")
+print("Successfully generated updated PowerPoint presentation with all 4 reference diagram images!")
