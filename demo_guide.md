@@ -4,6 +4,32 @@ This guide provides a structured, phase-by-phase script for presenting **Domain-
 
 ---
 
+## ❓ Frequently Asked Q&A: Does ArchUnit Run Pre-Build or Post-Build?
+
+### Answer to highlight in your presentation:
+"ArchUnit runs **DURING THE TEST PHASE (`mvn test`)** — which is **Post-Compilation** of bytecode, but **Pre-Packaging (`mvn package`) and Pre-Deployment (`mvn deploy`)**."
+
+```text
+ 1. Compile Code        2. Execute ArchUnit Rules        3. Package Artifact       4. Deploy App
+┌──────────────────┐    ┌───────────────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  mvn compile     │───►│  mvn test                 │───►│  mvn package     │───►│  mvn deploy     │
+│  (Generates      │    │  (ArchUnit analyzes       │    │  (Generates      │    │  (Pushes to     │
+│   .class files)  │    │   compiled bytecodes)     │    │   JAR / WAR)     │    │   Staging/Prod) │
+└──────────────────┘    └───────────────────────────┘    └──────────────────┘    └─────────────────┘
+                                   │
+                           ❌ VIOLATION FOUND
+                                   │
+                                   ▼
+                         🛑 BUILD FAILS IMMEDIATELY!
+                         (Package & Deployment are BLOCKED)
+```
+
+1. **Why Post-Compilation?**: ArchUnit analyzes compiled `.class` files via Java bytecode inspection. Source code must compile first (`mvn test-compile`).
+2. **Why a Pre-Packaging Build Gate?**: `mvn test` executes **BEFORE** JAR packaging (`mvn package`) and Docker/Cloud deployment. If ArchUnit finds a layer violation, Maven **FAILS THE BUILD IMMEDIATELY**. No broken artifact is built, and no bad code reaches production.
+3. **Git Pre-Commit Hook**: ArchUnit can also run locally as a Git `pre-commit` hook before `git push`.
+
+---
+
 ## 💡 Part 1: Advantages of DDD + Hexagonal Architecture over Traditional Java
 
 When starting the demo, explain why traditional 3-Tier Layered Java architecture degrades over time and how DDD + Hexagonal solves it:
@@ -24,24 +50,24 @@ When starting the demo, explain why traditional 3-Tier Layered Java architecture
 ### Phase 1: Demonstrate Pure Domain-Driven Design (DDD)
 
 #### 1. Show Domain Purity (`com.satellite.domain.model`)
-Open `src/main/java/com/satellite/domain/model/Satellite.java` and explain:
-- "Notice there are **zero imports from Spring, JPA, Hibernate, or Jackson**. This is pure Java 21."
-- "The domain is the center of the universe — it does not know or care if the app runs as a Spring Boot REST API, a CLI tool, or a serverless Lambda."
+Open `src/main/java/com/satellite/domain/model/Satellite.java` and highlight:
+- *"Notice there are **zero imports from Spring, JPA, Hibernate, or Jackson**. This is pure Java 21."*
+- *"The domain is the center of the application — it doesn't know or care whether it runs as a Spring Boot REST API, a CLI script, or a serverless function."*
 
 #### 2. Show Value Objects & Invariant Rules
 Open `Orbit.java` and `Telemetry.java`:
-- "Value Objects are immutable JDK records with built-in self-validation."
-- "`Orbit.java` enforces LEO (< 2,000 km) and GEO (~35,786 km) altitude constraints upon creation."
-- "`Telemetry.java` contains domain logic to evaluate anomaly thresholds (battery < 15% or temp > 80°C)."
+- *"Value Objects are immutable JDK records with self-validating rules."*
+- "`Orbit.java` enforces LEO (< 2,000 km) and GEO (~35,786 km) orbital constraints."
+- "`Telemetry.java` encapsulates anomaly detection logic (battery < 15% or temperature > 80°C)."
 
 #### 3. Show Aggregate Root & State Machine
 In `Satellite.java`:
-- Point out the status transitions: `REGISTERED` → `ACTIVE` → `ANOMALY` → `DECOMMISSIONED`.
-- "State transitions are guarded inside the aggregate root. Outer services cannot manipulate internal state directly."
+- Point out the status state machine transitions: `REGISTERED` → `ACTIVE` → `ANOMALY` → `DECOMMISSIONED`.
+- *"State transitions are guarded inside the aggregate root. Outer services cannot manipulate internal state directly."*
 
 #### 4. Show Domain Events
 Open `SatelliteLaunchedEvent.java` and `AnomalyDetectedEvent.java`:
-- "When a satellite launches or experiences an anomaly, the aggregate records a Domain Event internally."
+- *"When a satellite launches or triggers an anomaly, the aggregate records an immutable Domain Event."*
 
 ---
 
@@ -49,27 +75,27 @@ Open `SatelliteLaunchedEvent.java` and `AnomalyDetectedEvent.java`:
 
 #### 1. Show Driving (Inbound) Ports
 Open `src/main/java/com/satellite/domain/port/in/LaunchSatelliteUseCase.java`:
-- "Driving ports are Java interfaces defined by the domain representing business use cases."
+- *"Driving ports are Java interfaces defined by the domain representing business use cases."*
 
 #### 2. Show Driving (Inbound) Adapters
 Open `src/main/java/com/satellite/infrastructure/adapter/in/rest/SatelliteController.java`:
-- "The REST Controller is an entry adapter. It converts HTTP JSON requests into use case calls."
-- **Highlight Rule**: "Notice `SatelliteController` depends ONLY on `LaunchSatelliteUseCase` (the port interface), NOT on concrete service classes or database entities."
+- *"The REST Controller is an entry adapter converting HTTP JSON requests into use case calls."*
+- **Highlight Rule**: *"Notice `SatelliteController` depends ONLY on `LaunchSatelliteUseCase` (the port interface), NOT on concrete service classes or database entities."*
 
 #### 3. Show Driven (Outbound) Ports
 Open `src/main/java/com/satellite/domain/port/out/SatelliteRepository.java`:
-- "The domain defines the `SatelliteRepository` interface using domain objects (`Satellite`, `SatelliteId`), completely independent of SQL or ORM."
+- *"The domain defines the `SatelliteRepository` interface using domain objects (`Satellite`, `SatelliteId`), completely independent of SQL or ORM."*
 
 #### 4. Show Multi-Database Adapter Swapping (Superpower Demo)
 Open `SatelliteJpaAdapter.java` and `SatelliteMongoAdapter.java`:
-- "Here we have two database adapters implementing the same `SatelliteRepository` port."
-- "We can switch from H2/Postgres (`@Profile("jpa")`) to MongoDB (`@Profile("mongo")`) via Spring configuration without altering a single line of domain code!"
+- *"Here we have two database adapters implementing the same `SatelliteRepository` port."*
+- *"We can switch from H2/Postgres (`@Profile("jpa")`) to MongoDB (`@Profile("mongo")`) via Spring configuration without altering a single line of domain code!"*
 
 ---
 
 ### Phase 3: Live ArchUnit Layer Conflict & Build Gate Demo
 
-Demonstrate how ArchUnit prevents architectural erosion when a developer attempts a **layer boundary conflict** (e.g. REST Controller directly accessing application services or JPA entities).
+Demonstrate how ArchUnit prevents architectural erosion when a developer attempts a **layer boundary conflict** (e.g., REST Controller bypassing ports to access application services directly).
 
 #### Step 1: Run Successful Baseline Test
 Run Maven tests in your terminal:
@@ -78,7 +104,7 @@ mvn clean test
 ```
 - **Result**: All 37 unit, integration, and ArchUnit architecture tests pass cleanly.
 
-#### Step 2: Introduce a Layer Conflict Violation
+#### Step 2: Introduce a Layer Conflict Violation Live
 Open `src/main/java/com/satellite/infrastructure/adapter/in/rest/SatelliteController.java`.
 
 Simulate a developer bypassing the Driving Port contract by injecting `LaunchSatelliteService` directly into the controller:
@@ -116,7 +142,7 @@ Class <com.satellite.infrastructure.adapter.in.rest.SatelliteController> has fie
 [INFO] BUILD FAILURE
 ```
 
-#### Step 5: Explain the Power of ArchUnit Build Gates
-Conclude the demo by highlighting:
-- "ArchUnit acts as an automated architectural firewall in CI/CD."
-- "Even if a developer accidentally bypasses ports or leaks database annotations into the domain, ArchUnit stops the code from ever reaching main or production."
+#### Step 5: Conclude the Presentation
+Highlight the key takeaway:
+- *"ArchUnit acts as an automated architectural firewall in CI/CD."*
+- *"Even if a developer accidentally bypasses ports or leaks database annotations into the domain, ArchUnit stops the code from ever reaching main or production."*

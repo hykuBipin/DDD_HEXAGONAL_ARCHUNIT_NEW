@@ -9,6 +9,33 @@ A production-ready Spring Boot 3 reference project demonstrating **Domain-Driven
 
 ---
 
+## ❓ Does ArchUnit Run as Pre-Build or Post-Build?
+
+### ⏱️ The ArchUnit Build Lifecycle Explained
+
+ArchUnit runs **DURING THE TEST PHASE (`mvn test`)** — which is **Post-Compilation** of bytecode, but **Pre-Packaging (`mvn package`) & Pre-Deployment (`mvn deploy`)**:
+
+```text
+ 1. Compile Code        2. Execute ArchUnit Rules        3. Package Artifact       4. Deploy App
+┌──────────────────┐    ┌───────────────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  mvn compile     │───►│  mvn test                 │───►│  mvn package     │───►│  mvn deploy     │
+│  (Generates      │    │  (ArchUnit analyzes       │    │  (Generates      │    │  (Pushes to     │
+│   .class files)  │    │   compiled bytecodes)     │    │   JAR / WAR)     │    │   Staging/Prod) │
+└──────────────────┘    └───────────────────────────┘    └──────────────────┘    └─────────────────┘
+                                   │
+                           ❌ VIOLATION FOUND
+                                   │
+                                   ▼
+                         🛑 BUILD FAILS IMMEDIATELY!
+                         (Package & Deployment are BLOCKED)
+```
+
+1. **Why Post-Compilation?**: ArchUnit analyzes compiled Java bytecode (`.class` files) via ASM. Therefore, source code must first be compiled (`mvn test-compile`).
+2. **Why Pre-Packaging / Pre-Deployment Build Gate?**: `mvn test` executes **BEFORE** `mvn package` (JAR creation) and `mvn deploy` (Docker/K8s/CI/CD deployment). If an architectural rule is violated, Maven immediately **STOPS THE BUILD**. No broken JAR is ever generated, and no bad code reaches production.
+3. **Pre-Commit Hook Integration (Pre-Build Gate)**: ArchUnit can also be configured as a Git `pre-commit` hook to run before code is committed to Git.
+
+---
+
 ## 🖼️ Architecture Diagram Visualizations
 
 The project includes **5 high-definition graphic diagrams** modeled directly after classical architectural specifications ([Herberto Graça Explicit Architecture](https://github.com/mehdihadeli/awesome-software-architecture/blob/main/docs/hexagonal-architecture.md) & WATA Factory Hexagonal standards), populated with our exact Satellite codebase Java classes:
@@ -108,8 +135,6 @@ public class SatelliteMongoAdapter implements SatelliteRepository {
     }
 }
 ```
-
-> 💡 **Key Takeaway**: Switching from PostgreSQL to MongoDB or Redis is purely a configuration swap (`@Profile` or Spring Bean config). The Domain aggregate `Satellite.java` and Use Cases remain **100% untouched and unaware** of where data is stored!
 
 ---
 
