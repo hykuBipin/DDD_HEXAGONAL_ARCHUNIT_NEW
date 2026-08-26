@@ -80,35 +80,15 @@ p2.font.size = Pt(18)
 p2.font.color.rgb = MUTED_TEXT
 
 # -------------------------------------------------------------
-# SLIDE 2: Traditional Java vs Hexagonal Architecture
+# SLIDE 2: Herberto Graça Explicit Architecture Mapping (NEW!)
 # -------------------------------------------------------------
 slide2 = prs.slides.add_slide(prs.slide_layouts[6])
 set_slide_background(slide2, DARK_BG)
-add_header(slide2, "Why Move Beyond Traditional 3-Tier Layered Java?", "Architectural Context")
+add_header(slide2, "Herberto Graça Explicit Architecture — Satellite System Mapping", "Awesome Software Architecture Spec")
 
-body_box = slide2.shapes.add_textbox(Inches(0.8), Inches(1.5), Inches(11.7), Inches(5.3))
-tf2 = body_box.text_frame
-tf2.word_wrap = True
-
-p = tf2.paragraphs[0]
-p.text = "Traditional 3-Tier Layered Architecture Problems:"
-p.font.bold = True
-p.font.size = Pt(20)
-p.font.color.rgb = GOLD_ACCENT
-
-items = [
-    "Database-Centric Design: JPA @Entity classes contaminate business logic; schema changes break domain rules.",
-    "Framework Tight Coupling: @Service, @Autowired, and Jackson annotations scattered throughout business logic.",
-    "Anemic Domain Models: Dumb POJOs with getters/setters; business logic trapped inside procedural services.",
-    "Slow Test Feedback: Unit tests require booting Spring Context or mocking complex database repositories.",
-    "Architectural Decay: Without automated guardrails, developers break layer boundaries over time."
-]
-
-for item in items:
-    p = tf2.add_paragraph()
-    p.text = "• " + item
-    p.font.size = Pt(16)
-    p.font.color.rgb = LIGHT_TEXT
+img_path0 = "/Users/bipin/.gemini/antigravity/scratch/satellite-system/diagram_explicit_architecture.png"
+if os.path.exists(img_path0):
+    slide2.shapes.add_picture(img_path0, Inches(0.8), Inches(1.4), width=Inches(11.7))
 
 # -------------------------------------------------------------
 # SLIDE 3: Hexagonal Primary & Secondary Adapters Diagram
@@ -204,4 +184,4 @@ for c in cmds:
 
 prs.save("/Users/bipin/.gemini/antigravity/scratch/satellite-system/Satellite_Architecture_DDD_Hexagonal_ArchUnit.pptx")
 
-print("Successfully generated updated PowerPoint presentation with all 4 reference diagram images!")
+print("Successfully generated updated PowerPoint presentation with Herberto Graca Explicit Architecture slide!")

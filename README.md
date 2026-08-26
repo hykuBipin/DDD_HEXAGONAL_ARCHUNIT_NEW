@@ -1,6 +1,6 @@
 # 🛰️ Satellite Management System — DDD + Hexagonal Architecture + ArchUnit
 
-A production-ready Spring Boot 3 reference project demonstrating **Domain-Driven Design (DDD)**, **Hexagonal Architecture (Ports & Adapters)**, and **ArchUnit Automated Architecture Enforcement**, using a **Satellite Management System** as the domain context.
+A production-ready Spring Boot 3 reference project demonstrating **Domain-Driven Design (DDD)**, **Hexagonal Architecture (Ports & Adapters)**, **Herberto Graça's Explicit Architecture**, and **ArchUnit Automated Architecture Enforcement**, using a **Satellite Management System** as the domain context.
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot 3.3.4](https://img.shields.io/badge/Spring%20Boot-3.3.4-green.svg)](https://spring.io/projects/spring-boot)
@@ -11,12 +11,13 @@ A production-ready Spring Boot 3 reference project demonstrating **Domain-Driven
 
 ## 🖼️ Architecture Diagram Visualizations
 
-The project includes **4 high-definition graphic diagrams** modeled directly after classical architectural specifications (Herberto Graça & WATA Factory Hexagonal standards), populated with our exact Satellite codebase Java classes:
+The project includes **5 high-definition graphic diagrams** modeled directly after classical architectural specifications ([Herberto Graça Explicit Architecture](https://github.com/mehdihadeli/awesome-software-architecture/blob/main/docs/hexagonal-architecture.md) & WATA Factory Hexagonal standards), populated with our exact Satellite codebase Java classes:
 
-1. **Primary & Secondary Adapters (`diagram_hexagonal_primary_secondary.png`)**: Modeled after WATA Factory / Herberto Graça Hexagonal specs. Visualizes Primary/Driving Adapters on the left (`SatelliteController.java`, `TelemetryConsumer.java`), Application Use Cases in the middle (`LaunchSatelliteService.java`), Domain Core in the center (`Satellite.java`, `Orbit.java`), and Secondary/Driven Adapters on the right (`SatelliteJpaAdapter.java` -> SQL DB, `SatelliteMongoAdapter.java` -> NoSQL DB, `SatelliteEventPublisherAdapter.java` -> Spring Events).
-2. **Concentric Layered Onion Architecture (`diagram_onion_concentric.png`)**: Concentric ring view enforcing the inward dependency rule — outer Infrastructure & Adapters depend inward on Application Services, Domain Ports, and the untouched Core Domain Model.
-3. **DDD Ubiquitous Language & Subdomains (`diagram_ddd_ubiquitous_language.png`)**: Distills the Satellite Problem Domain, Ubiquitous Language ("Orbital Inclination", "LEO/GEO Orbit", "Telemetry Anomaly Threshold"), Core Subdomain (`Satellite` Aggregate Root & State Machine), Supporting Subdomain (`Telemetry` Anomaly Detector), and Generic Subdomain (Persistence & Security).
-4. **Multi-Database Adapter Swapping Demo (`diagram_adapter_swapping.png`)**: Demonstrates how `SatelliteRepository` outbound port seamlessly switches between Relational DB (`SatelliteJpaAdapter`) and NoSQL Document DB (`SatelliteMongoAdapter`) with **zero changes to Domain Core**.
+1. **Herberto Graça Explicit Architecture (`diagram_explicit_architecture.png`)**: Synthesizes DDD, Hexagonal, Clean, and Onion Architecture into explicit application boundaries. Maps Primary Adapters (REST Controllers / CLI), Application Core (Use Cases & Commands), Domain Layer (Aggregates & Value Objects), and Secondary Adapters (JPA / Mongo / Messaging).
+2. **Primary & Secondary Adapters (`diagram_hexagonal_primary_secondary.png`)**: Modeled after WATA Factory / Herberto Graça Hexagonal specs. Visualizes Primary/Driving Adapters on the left (`SatelliteController.java`, `TelemetryConsumer.java`), Application Use Cases in the middle (`LaunchSatelliteService.java`), Domain Core in the center (`Satellite.java`, `Orbit.java`), and Secondary/Driven Adapters on the right (`SatelliteJpaAdapter.java` -> SQL DB, `SatelliteMongoAdapter.java` -> NoSQL DB, `SatelliteEventPublisherAdapter.java` -> Spring Events).
+3. **Concentric Layered Onion Architecture (`diagram_onion_concentric.png`)**: Concentric ring view enforcing the inward dependency rule — outer Infrastructure & Adapters depend inward on Application Services, Domain Ports, and the untouched Core Domain Model.
+4. **DDD Ubiquitous Language & Subdomains (`diagram_ddd_ubiquitous_language.png`)**: Distills the Satellite Problem Domain, Ubiquitous Language ("Orbital Inclination", "LEO/GEO Orbit", "Telemetry Anomaly Threshold"), Core Subdomain (`Satellite` Aggregate Root & State Machine), Supporting Subdomain (`Telemetry` Anomaly Detector), and Generic Subdomain (Persistence & Security).
+5. **Multi-Database Adapter Swapping Demo (`diagram_adapter_swapping.png`)**: Demonstrates how `SatelliteRepository` outbound port seamlessly switches between Relational DB (`SatelliteJpaAdapter`) and NoSQL Document DB (`SatelliteMongoAdapter`) with **zero changes to Domain Core**.
 
 ---
 
