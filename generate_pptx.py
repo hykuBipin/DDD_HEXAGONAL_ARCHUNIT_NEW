@@ -514,6 +514,6 @@ p.text = "  â€¢ Inject LaunchSatelliteService into SatelliteController.java\n  â
 p.font.size = Pt(14)
 p.font.color.rgb = LIGHT_TEXT
 
-prs.save("/Users/bipin/.gemini/antigravity/scratch/satellite-system/Satellite_Architecture_DDD_Hexagonal_ArchUnit.pptx")
+prs.save("/Users/bipin/.gemini/antigravity/scratch/satellite-system/Satellite_Architecture_DDD_Hexagonal_ArchUnit_FINAL.pptx")
 
-print("Successfully generated comprehensive 14-slide PowerPoint presentation deck!")
+print("Successfully generated FINAL PowerPoint presentation deck: Satellite_Architecture_DDD_Hexagonal_ArchUnit_FINAL.pptx")
