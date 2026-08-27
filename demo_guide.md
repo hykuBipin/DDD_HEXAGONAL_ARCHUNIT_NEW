@@ -4,6 +4,32 @@ This guide provides a structured, phase-by-phase script for presenting **Domain-
 
 ---
 
+## 📸 Visual Evidence & Screenshots
+
+### 1. ArchUnit Layer Conflict Failure in Surefire HTML Report
+![ArchUnit Layer Conflict Failure](docs/evidence/evidence_surefire_archunit_failure.png)
+> **Figure 1**: Surefire HTML Report (`target/site/surefire-report.html`) catching a live layer violation (`controllersMustDependOnPortsNotServices`). ArchUnit detects that `SatelliteController` illegally injected `LaunchSatelliteService` instead of depending solely on the `LaunchSatelliteUseCase` port interface, failing the build!
+
+---
+
+### 2. Postman API — Launch Satellite (`POST /api/v1/satellites`)
+![Postman POST Launch Satellite](docs/evidence/evidence_postman_launch_satellite.png)
+> **Figure 2**: Postman client executing `POST http://localhost:8080/api/v1/satellites` returning `HTTP 201 Created` with initialized satellite status `ACTIVE` and generated UUID (`b1a483b4-1589-4b6d-846a-23fc80b7910f`).
+
+---
+
+### 3. Postman API — Normal Telemetry (`PUT /telemetry`)
+![Postman PUT Telemetry Normal](docs/evidence/evidence_postman_telemetry_normal.png)
+> **Figure 3**: Postman client updating telemetry with healthy battery (92.5%) and temperature (21.5°C) returning `HTTP 200 OK`.
+
+---
+
+### 4. Postman API — Low Battery Anomaly Trigger (`PUT /telemetry`)
+![Postman PUT Telemetry Anomaly](docs/evidence/evidence_postman_telemetry_anomaly.png)
+> **Figure 4**: Postman client submitting low battery telemetry (10.0%). The domain aggregate `Satellite.java` evaluates the invariant rule, triggers the `ANOMALY` state transition (`isAnomalous: true`), and emits a `AnomalyDetectedEvent`!
+
+---
+
 ## 🛠️ Surefire HTML Test Report Setup & Viewing
 
 Running `mvn clean test` or `mvn surefire-report:report` automatically generates a comprehensive HTML test report:

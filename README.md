@@ -16,6 +16,18 @@ A production-ready Spring Boot 3 reference project demonstrating **Domain-Driven
 
 ---
 
+## 📸 Visual Evidence & Screenshots
+
+| Surefire HTML Report ArchUnit Layer Failure | Postman POST Launch Satellite |
+|---|---|
+| ![ArchUnit Layer Failure](docs/evidence/evidence_surefire_archunit_failure.png) | ![Postman POST Launch Satellite](docs/evidence/evidence_postman_launch_satellite.png) |
+
+| Postman Normal Telemetry (HTTP 200 OK) | Postman Anomaly Trigger (Status: ANOMALY) |
+|---|---|
+| ![Postman Normal Telemetry](docs/evidence/evidence_postman_telemetry_normal.png) | ![Postman Anomaly Trigger](docs/evidence/evidence_postman_telemetry_anomaly.png) |
+
+---
+
 ## 📌 Executive Summary Table: What, Why, Components, Implementation, & Challenges
 
 | Aspect | 1. Domain-Driven Design (DDD) | 2. Hexagonal Architecture (Ports & Adapters) | 3. ArchUnit Architecture Enforcement |
