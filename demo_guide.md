@@ -4,11 +4,59 @@ This guide provides a structured, phase-by-phase script for presenting **Domain-
 
 ---
 
+## 🛠️ Surefire HTML Test Report Setup & Troubleshooting
+
+### Why HTML Reports Are Not Automatically Generated During a Test Failure
+
+When a test fails during `mvn test` or `mvn test -Parchitecture-test`:
+
+```text
+compile ──► testCompile ──► Surefire (ArchUnit) ──► ❌ 1 Failure ──► BUILD FAILURE (STOP!)
+```
+
+Because Maven stops immediately on test failure, downstream goals bound to `verify` or `package` phases **never execute**. However, Maven **ALREADY SAVED** the XML and TXT test failure results at:
+- `target/surefire-reports/TEST-com.satellite.architecture.HexagonalArchitectureTest.xml`
+- `target/surefire-reports/com.satellite.architecture.HexagonalArchitectureTest.txt`
+
+---
+
+### Production Workflow: Generate HTML Report Even After Test Failures
+
+To generate `target/site/surefire-report.html` **without re-running tests** (even after an ArchUnit failure), follow these two steps:
+
+#### Step 1: Run ArchUnit Tests
+```bash
+mvn clean test -Parchitecture-test
+```
+*(Expected: `BUILD FAILURE` with 1 failed test).*
+
+#### Step 2: Read Raw Failure Logs (Terminal)
+```bash
+cat target/surefire-reports/com.satellite.architecture.HexagonalArchitectureTest.txt
+```
+
+#### Step 3: Generate HTML Report from Existing Results (No Re-run)
+```bash
+mvn surefire-report:report-only
+```
+> **Note**: Always use `surefire-report:report-only` instead of `surefire-report:report`. `report-only` reads existing XML reports from `target/surefire-reports/` without re-triggering the test lifecycle!
+
+#### Step 4: Verify HTML Report Generation
+```bash
+find target/site -type f -name "*.html" -print
+```
+**Output**:
+```text
+target/site/surefire-report.html
+```
+
+---
+
 ## 📸 Visual Evidence & Screenshots
 
 ### 1. ArchUnit Layer Conflict Failure in Surefire HTML Report
 ![ArchUnit Layer Conflict Failure](docs/evidence/evidence_surefire_archunit_failure.png)
-> **Figure 1**: Surefire HTML Report (`target/site/surefire-report.html`) catching a live layer violation (`controllersMustDependOnPortsNotServices`). ArchUnit detects that `SatelliteController` illegally injected `LaunchSatelliteService` instead of depending solely on the `LaunchSatelliteUseCase` port interface, failing the build!
+> **Figure 1**: Surefire HTML Report (`target/site/surefire-report.html`) generated via `mvn surefire-report:report-only` showing the failed rule `controllersMustDependOnPortsNotServices`. ArchUnit detects that `SatelliteController` illegally injected `LaunchSatelliteService` instead of depending solely on the `LaunchSatelliteUseCase` port interface!
 
 ---
 
@@ -27,23 +75,6 @@ This guide provides a structured, phase-by-phase script for presenting **Domain-
 ### 4. Postman API — Low Battery Anomaly Trigger (`PUT /telemetry`)
 ![Postman PUT Telemetry Anomaly](docs/evidence/evidence_postman_telemetry_anomaly.png)
 > **Figure 4**: Postman client submitting low battery telemetry (10.0%). The domain aggregate `Satellite.java` evaluates the invariant rule, triggers the `ANOMALY` state transition (`isAnomalous: true`), and emits a `AnomalyDetectedEvent`!
-
----
-
-## 🛠️ Surefire HTML Test Report Setup & Viewing
-
-Running `mvn clean test` or `mvn surefire-report:report` automatically generates a comprehensive HTML test report:
-
-```bash
-# 1. Run full test suite & generate HTML report
-mvn clean test
-
-# OR explicitly execute the surefire report goal
-mvn surefire-report:report
-```
-
-- **Report Location**: `target/site/surefire-report.html`
-- **Viewing in Browser**: Open `target/site/surefire-report.html` in Chrome/Safari to see a visual summary of all **37 passing unit, integration, and ArchUnit architecture tests**.
 
 ---
 
@@ -226,22 +257,19 @@ public class SatelliteController {
 #### Step 3: Run `mvn test` to Trigger ArchUnit Build Gate
 In your terminal, execute:
 ```bash
-mvn test
+mvn test -Parchitecture-test
+```
+*(Result: `BUILD FAILURE` at Surefire stage).*
+
+#### Step 4: Generate HTML Report Post-Failure Without Re-running Tests
+```bash
+mvn surefire-report:report-only
 ```
 
-#### Step 4: Show the ArchUnit Violation Failure Report
-Maven build **FAILS IMMEDIATELY** with this exact ArchUnit report:
+#### Step 5: View Generated HTML Report
+Open `target/site/surefire-report.html` in your browser. It renders the full HTML table showing `controllersMustDependOnPortsNotServices` failed with the exact class and field violation details!
 
-```text
-[ERROR] Failures: 
-[ERROR]   HexagonalArchitectureTest.controllersMustDependOnPortsNotServices:117 
-Architecture Violation [Priority: MEDIUM] - Rule 'no classes residing in com.satellite.infrastructure.adapter.in.rest.. and having simple name ending with 'Controller' should depend on classes residing in com.satellite.application..' was violated (1 times):
-Class <com.satellite.infrastructure.adapter.in.rest.SatelliteController> has field <launchSatelliteService> of type <com.satellite.application.service.LaunchSatelliteService> in (SatelliteController.java:28)
-
-[INFO] BUILD FAILURE
-```
-
-#### Step 5: Conclude the Presentation
+#### Step 6: Conclude the Presentation
 Highlight the key takeaway:
 - *"ArchUnit acts as an automated architectural firewall in CI/CD."*
 - *"Even if a developer accidentally bypasses ports or leaks database annotations into the domain, ArchUnit stops the code from ever reaching main or production."*

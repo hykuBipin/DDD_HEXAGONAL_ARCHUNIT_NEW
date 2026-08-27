@@ -232,7 +232,7 @@
           </plugin>
 
           <!-- ================================================= -->
-          <!-- Generate Surefire HTML report                     -->
+          <!-- SUREFIRE HTML REPORT GENERATOR                    -->
           <!-- ================================================= -->
 
           <plugin>
@@ -240,20 +240,9 @@
             <artifactId>maven-surefire-report-plugin</artifactId>
             <version>${maven.surefire.report.version}</version>
 
-            <executions>
-
-              <execution>
-                <id>generate-architecture-test-report</id>
-
-                <phase>verify</phase>
-
-                <goals>
-                  <goal>report-only</goal>
-                </goals>
-
-              </execution>
-
-            </executions>
+            <configuration>
+              <outputDirectory>${project.build.directory}/site</outputDirectory>
+            </configuration>
 
           </plugin>
 
