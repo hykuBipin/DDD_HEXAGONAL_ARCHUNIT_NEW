@@ -129,9 +129,35 @@
         <version>${maven.surefire.version}</version>
       </plugin>
 
+      <!-- Surefire HTML Test Report Generator -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>${maven.surefire.report.version}</version>
+        <executions>
+          <execution>
+            <id>generate-surefire-html-report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report-only</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
 
   </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>${maven.surefire.report.version}</version>
+      </plugin>
+    </plugins>
+  </reporting>
 
   <!-- ============================================================= -->
   <!-- PROFILES                                                       -->
