@@ -1,6 +1,23 @@
 # 🎬 Step-by-Step Presentation & Live Demo Guide
 
-This guide provides a structured, phase-by-phase script for presenting **Domain-Driven Design (DDD)**, **Hexagonal Architecture (Ports & Adapters)**, and **ArchUnit Architecture Enforcement** using the Satellite Management System codebase.
+This guide provides a structured, phase-by-phase script for presenting **Domain-Driven Design (DDD)**, **Hexagonal Architecture (Ports & Adapters)**, **Herberto Graça's Explicit Architecture**, and **ArchUnit Architecture Enforcement** using the Satellite Management System codebase.
+
+---
+
+## 🛠️ Surefire HTML Test Report Setup & Viewing
+
+Running `mvn clean test` or `mvn surefire-report:report` automatically generates a comprehensive HTML test report:
+
+```bash
+# 1. Run full test suite & generate HTML report
+mvn clean test
+
+# OR explicitly execute the surefire report goal
+mvn surefire-report:report
+```
+
+- **Report Location**: `target/site/surefire-report.html`
+- **Viewing in Browser**: Open `target/site/surefire-report.html` in Chrome/Safari to see a visual summary of all **37 passing unit, integration, and ArchUnit architecture tests**.
 
 ---
 
@@ -93,7 +110,63 @@ Open `SatelliteJpaAdapter.java` and `SatelliteMongoAdapter.java`:
 
 ---
 
-### Phase 3: Live ArchUnit Layer Conflict & Build Gate Demo
+### Phase 3: Working Application Demo Commands (cURL Scripts)
+
+#### 1. Launch Spring Boot Server
+```bash
+mvn spring-boot:run
+```
+Application starts on `http://localhost:8080`.
+
+#### 2. Launch Satellite (`POST /api/v1/satellites`)
+```bash
+curl -X POST http://localhost:8080/api/v1/satellites \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Hubble-2",
+    "owner": "NASA",
+    "altitudeKm": 540.0,
+    "inclinationDegrees": 28.5,
+    "orbitType": "LEO"
+  }'
+```
+
+#### 3. Query Satellite Details (`GET /api/v1/satellites/{id}`)
+```bash
+curl -X GET http://localhost:8080/api/v1/satellites/<SATELLITE_UUID>
+```
+
+#### 4. Send Normal Telemetry Update (`PUT /api/v1/satellites/{id}/telemetry`)
+```bash
+curl -X PUT http://localhost:8080/api/v1/satellites/<SATELLITE_UUID>/telemetry \
+  -H "Content-Type: application/json" \
+  -d '{
+    "batteryPercentage": 92.5,
+    "signalStrengthDbm": -68.0,
+    "temperatureCelsius": 21.5
+  }'
+```
+
+#### 5. Trigger Anomaly State Transition & Event (`PUT /api/v1/satellites/{id}/telemetry`)
+Send low battery (< 15%) to trigger `ANOMALY` state transition:
+```bash
+curl -X PUT http://localhost:8080/api/v1/satellites/<SATELLITE_UUID>/telemetry \
+  -H "Content-Type: application/json" \
+  -d '{
+    "batteryPercentage": 10.0,
+    "signalStrengthDbm": -70.0,
+    "temperatureCelsius": 20.0
+  }'
+```
+
+#### 6. List All Satellites (`GET /api/v1/satellites`)
+```bash
+curl -X GET http://localhost:8080/api/v1/satellites
+```
+
+---
+
+### Phase 4: Live ArchUnit Layer Conflict & Build Gate Demo
 
 Demonstrate how ArchUnit prevents architectural erosion when a developer attempts a **layer boundary conflict** (e.g., REST Controller bypassing ports to access application services directly).
 
